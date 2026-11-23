@@ -675,7 +675,7 @@ function gameView(){
       <h2>${type==='F'?'Wen willst du einfrieren?':'Wer muss 3 Karten ziehen?'}</h2>
       <p class="muted small" style="margin-top:-6px">${type==='F'?'Der Spieler sichert seine Punkte und darf diese Runde nicht mehr ziehen.':'Der Spieler zieht sofort automatisch 3 Karten.'}</p>
       <div class="targets">${cands.map(({p,i})=>`<button data-t="${i}" class="${p.id===myId?'':'primary'}">
-        <span>${p.id===myId?'Mich selbst':esc(p.name)} ${hearts(p.sc)}</span><span class="small">${sum(p.cards)} Pkt · ${p.cards.length} Karten</span></button>`).join('')}</div>
+        <span>${p.id===myId?(type==='F'?'Mich selbst':'Ich selbst'):esc(p.name)} ${hearts(p.sc)}</span><span class="small">${sum(p.cards)} Pkt · ${p.cards.length} Karten</span></button>`).join('')}</div>
     </div></div>`;
   }
 
