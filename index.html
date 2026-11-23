@@ -9,6 +9,7 @@
 :root{
   --bg:#14110f;--panel:#1f1a17;--panel2:#2a231f;--line:#3a302a;--text:#f3ece6;--muted:#a8998d;
   --accent:#ff7a2f;--accent2:#ffb347;--good:#5fd38d;--bad:#ff4d4d;--card:#fbf6ef;
+  --ice:#6fd3ff;--flip:#b67cff;--heart:#ff3b5c;
 }
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -36,38 +37,54 @@ button.safe{background:linear-gradient(180deg,#7ee8a8,var(--good));color:#0b2a17
 .small{font-size:13px}
 .err{background:#3a1414;border:1px solid #6b2222;color:#ffb3b3;padding:12px;border-radius:10px;margin-bottom:14px}
 .plist{list-style:none;padding:0;margin:0}
-.plist li{padding:8px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+.plist li{padding:8px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
 .plist li:last-child{border:0}
 .topbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:14px}
 .pill{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;color:var(--muted)}
 .pill b{color:var(--text)}
+.banner{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px;font-weight:600;text-align:center}
+.banner.flip{border-color:var(--flip);color:#e2cdff;box-shadow:0 0 20px -8px var(--flip)}
+.banner.choose{border-color:var(--ice);color:#d4f2ff}
 .players{display:grid;gap:12px}
 .pl{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;position:relative;transition:border-color .2s,box-shadow .2s}
 .pl.turn{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 24px -6px var(--accent)}
+.pl.flipping{border-color:var(--flip);box-shadow:0 0 0 1px var(--flip),0 0 24px -6px var(--flip)}
 .pl.burned{background:linear-gradient(180deg,#2c1310,var(--panel))}
 .pl.stopped{background:linear-gradient(180deg,#132a1d,var(--panel))}
+.pl.frozen{background:linear-gradient(180deg,#10243a,var(--panel))}
 .plhead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
-.name{font-weight:700;font-size:17px}
-.you{font-size:11px;background:var(--accent);color:#2a1405;border-radius:6px;padding:2px 6px;margin-left:6px;vertical-align:middle}
+.name{font-weight:700;font-size:17px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.you{font-size:11px;background:var(--accent);color:#2a1405;border-radius:6px;padding:2px 6px}
 .badge{font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px;background:var(--panel2);color:var(--muted)}
 .badge.burned{background:var(--bad);color:#fff}
 .badge.stopped{background:var(--good);color:#0b2a17}
+.badge.frozen{background:var(--ice);color:#06243a}
 .badge.turn{background:var(--accent);color:#2a1405}
+.badge.flip{background:var(--flip);color:#1d0b33}
 .badge.away{background:#555;color:#ddd}
 .scores{display:flex;gap:16px;align-items:baseline;font-size:13px;color:var(--muted)}
 .scores b{font-size:20px;color:var(--text)}
-.bar{height:6px;background:var(--panel2);border-radius:99px;overflow:hidden;margin:8px 0 12px}
-.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px}
+.bar{height:6px;background:var(--panel2);border-radius:99px;overflow:hidden;margin:8px 0 12px;position:relative}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px;position:absolute;left:0;top:0}
 .bar i.pend{background:rgba(255,179,71,.35)}
-.bar{position:relative}
-.bar i{position:absolute;left:0;top:0}
-.cards{display:flex;flex-wrap:wrap;gap:8px;min-height:84px}
-.empty{color:var(--muted);font-size:13px;align-self:center}
-.card{width:56px;height:80px;border-radius:9px;background:var(--card);color:#1b1410;position:relative;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:28px;box-shadow:0 3px 10px rgba(0,0,0,.4);border-top:7px solid var(--c)}
+.cards{display:flex;flex-wrap:wrap;gap:8px;min-height:84px;align-items:center}
+.empty{color:var(--muted);font-size:13px}
+.card{width:56px;height:80px;border-radius:9px;background:var(--card);color:#1b1410;position:relative;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:28px;box-shadow:0 3px 10px rgba(0,0,0,.4);border-top:7px solid var(--c);flex:0 0 auto}
 .card small{position:absolute;top:3px;left:5px;font-size:11px;color:var(--c)}
 .card.dup{outline:3px solid var(--bad);animation:shake .5s}
 .card.new{animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
+.card.act{font-size:15px;text-align:center;line-height:1.1;flex-direction:column;gap:4px;color:#fff;border-top:0}
+.card.act .ico{font-size:28px}
+.card.act.F{background:linear-gradient(160deg,#9be6ff,#2a8fd6)}
+.card.act.T{background:linear-gradient(160deg,#d7b5ff,#7a3fd6)}
+.card.act.S{background:linear-gradient(160deg,#ff9cae,#d61f45)}
+.card.big{width:96px;height:136px;font-size:17px;margin:0 auto 14px}
+.card.big .ico{font-size:44px}
 .pl.burned .card:not(.dup){filter:grayscale(.7) brightness(.7)}
+.pl.frozen .card{filter:saturate(.6) hue-rotate(-10deg)}
+.hearts{display:inline-flex;gap:3px;align-items:center}
+.heart{width:21px;height:18px;image-rendering:pixelated;filter:drop-shadow(0 0 4px rgba(255,59,92,.6));animation:beat 1.2s infinite}
+@keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.18)}30%{transform:scale(1)}}
 @keyframes pop{from{transform:translateY(-30px) scale(.6) rotate(-8deg);opacity:0}to{transform:none;opacity:1}}
 @keyframes shake{0%,100%{transform:none}20%{transform:translateX(-6px) rotate(-4deg)}40%{transform:translateX(6px) rotate(4deg)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 .actions{position:sticky;bottom:0;background:linear-gradient(180deg,transparent,var(--bg) 30%);padding:18px 0 14px;margin-top:6px}
@@ -78,10 +95,15 @@ button.safe{background:linear-gradient(180deg,#7ee8a8,var(--good));color:#0b2a17
 .log{font-size:13px;color:var(--muted);max-height:180px;overflow:auto;padding-left:18px;margin:0}
 .log li{margin:3px 0}
 .overlay{position:fixed;inset:0;background:rgba(10,7,5,.75);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10;backdrop-filter:blur(3px)}
-.modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;max-width:440px;width:100%}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;max-width:440px;width:100%;max-height:100%;overflow:auto}
 .modal h2{margin:0 0 14px}
-.toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:var(--bad);color:#fff;font-weight:800;padding:12px 20px;border-radius:12px;z-index:20;animation:pop .4s;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.targets{display:grid;gap:8px}
+.targets button{display:flex;justify-content:space-between;align-items:center;text-align:left}
+.toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:var(--bad);color:#fff;font-weight:800;padding:12px 20px;border-radius:12px;z-index:20;animation:pop .4s;box-shadow:0 8px 30px rgba(0,0,0,.5);max-width:calc(100% - 32px);text-align:center}
 .toast.ok{background:var(--good);color:#0b2a17}
+.toast.ice{background:var(--ice);color:#06243a}
+.toast.flip{background:var(--flip);color:#1d0b33}
+.toast.heart{background:var(--heart);color:#fff}
 .deckinfo{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
 .deckinfo span{font-size:11px;background:var(--panel2);border-radius:6px;padding:3px 6px;color:var(--muted)}
 .deckinfo span b{color:var(--text)}
@@ -93,14 +115,15 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px}
 <div id="app"></div>
 <script>
 const TARGET = 200;
-const SEVEN = 7, BONUS = 15;
+const SEVEN = 7, BONUS = 15, FLIP_DELAY = 1100;
+const ACT = { F:{name:'Freeze', ico:'❄', cls:'ice'}, T:{name:'Flip Three', ico:'3×', cls:'flip'}, S:{name:'Second Chance', ico:'❤', cls:'heart'} };
 const PREFIX = 'verbrannt-kartenspiel-v1-';
 const app = document.getElementById('app');
 
 let peer = null, isHost = false, myId = null, hostConn = null;
 let conns = {};          // host: peerId -> connection
 let S = null;            // shared game state
-let deck = [], discard = []; // host only
+let deck = [], discard = [], pending = [], flipTimer = null; // host only
 let errorMsg = '', connecting = false;
 let lastSeenSeq = 0, toast = null, toastTimer = null;
 
@@ -109,12 +132,28 @@ let myName = store('verbrannt-name') || '';
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
-const fullDeck = () => { const d=[0]; for(let v=1; v<=13; v++) for(let i=0;i<v;i++) d.push(v); return shuffle(d); };
+const fullDeck = () => {
+  const d=[0];
+  for(let v=1; v<=13; v++) for(let i=0;i<v;i++) d.push(v);
+  for(const a of ['F','T','S']) for(let i=0;i<3;i++) d.push(a);
+  return shuffle(d);
+};
 const sum = a => a.reduce((x,y)=>x+y,0);
 const color = v => `hsl(${(v*29+10)%360} 75% 45%)`;
 function makeCode(){ const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s=''; for(let i=0;i<5;i++) s+=c[Math.floor(Math.random()*c.length)]; return s; }
 function inviteLink(room){ return location.href.split('#')[0] + '#' + room; }
 function parseCode(x){ x = (x||'').trim(); if(x.includes('#')) x = x.split('#').pop(); return x.toUpperCase().replace(/[^A-Z0-9]/g,''); }
+
+// Pixel-Art-Herz
+const HEART_PX = ['.XX.XX.','XWXXXXX','XXXXXXX','.XXXXX.','..XXX..','...X...'];
+const HEART = (() => {
+  let r = '';
+  HEART_PX.forEach((row,y) => [...row].forEach((c,x) => {
+    if(c==='X') r += `<rect x="${x}" y="${y}" width="1" height="1" fill="#ff3b5c"/>`;
+    if(c==='W') r += `<rect x="${x}" y="${y}" width="1" height="1" fill="#ffd1da"/>`;
+  }));
+  return `<svg class="heart" viewBox="0 0 7 6" shape-rendering="crispEdges" aria-label="Second Chance">${r}</svg>`;
+})();
 
 // ---------------- HOST LOGIC ----------------
 function hostGame(){
@@ -124,7 +163,7 @@ function hostGame(){
   peer.on('open', () => {
     isHost = true; myId = 'host'; connecting = false;
     S = { room, phase:'lobby', round:0, turn:0, starter:-1, seq:0, last:null, winner:null, log:[],
-          players:[newPlayer('host', myName)], deckCount:0, remaining:{} };
+          players:[newPlayer('host', myName)], deckCount:0, remaining:{}, choose:null, flip:null };
     history.replaceState(null,'','#'+room);
     broadcast();
   });
@@ -140,7 +179,7 @@ function hostGame(){
   });
   peer.on('disconnected', () => { try{ peer.reconnect(); }catch(e){} });
 }
-function newPlayer(id, name){ return { id, name, total:0, cards:[], status:'active', banked:null, connected:true }; }
+function newPlayer(id, name){ return { id, name, total:0, cards:[], sc:0, status:'active', banked:null, bonus:false, connected:true }; }
 
 function onHostMsg(c, d){
   if(!d || typeof d !== 'object') return;
@@ -154,7 +193,7 @@ function onHostMsg(c, d){
     conns[c.peer] = c;
     broadcast();
   } else if(d.t === 'act'){
-    act(c.peer, d.a);
+    act(c.peer, d.a, d.target);
   }
 }
 
@@ -169,29 +208,47 @@ function onClientLeft(pid){
   addLog(`${p.name} hat die Verbindung verloren.`);
   if(S.phase === 'playing' && p.status === 'active'){
     p.status = 'away';
-    if(S.turn === i) advanceTurn(); else checkRoundOver();
+    if(S.choose && S.choose.chooser === i){ S.choose = null; processPending(); }
+    else if(!S.choose && !S.flip){ if(S.turn === i) advanceTurn(); else checkRoundOver(); }
   }
   broadcast();
 }
 
-function addLog(msg){ S.log.unshift(msg); if(S.log.length > 60) S.log.pop(); }
+function addLog(msg){ S.log.unshift(msg); if(S.log.length > 80) S.log.pop(); }
+const activeIdx = () => S.players.map((p,i) => p.status==='active' ? i : -1).filter(i => i >= 0);
 
-function act(pid, a){
+function act(pid, a, target){
   const idx = S.players.findIndex(p => p.id === pid);
   if(idx < 0) return;
   const p = S.players[idx];
+  const busy = !!(S.choose || S.flip);
   if(a === 'start' && pid === 'host' && S.phase === 'lobby'){ newGame(); }
   else if(a === 'restart' && pid === 'host' && S.phase === 'gameover'){ newGame(); }
   else if(a === 'next' && S.phase === 'roundend'){ startRound(); }
-  else if(a === 'draw' && S.phase === 'playing' && S.turn === idx && p.status === 'active'){ draw(idx); }
-  else if(a === 'stop' && S.phase === 'playing' && p.status === 'active'){ stop(idx); }
+  else if(a === 'draw' && S.phase === 'playing' && !busy && S.turn === idx && p.status === 'active'){ draw(idx); }
+  else if(a === 'stop' && S.phase === 'playing' && !busy && p.status === 'active'){ stop(idx); }
+  else if(a === 'target' && S.phase === 'playing' && S.choose && S.choose.chooser === idx){
+    const t = Number(target);
+    if(!S.players[t] || S.players[t].status !== 'active') return;
+    const type = S.choose.type;
+    pending.shift(); S.choose = null;
+    applyAction(type, idx, t);
+    if(S.phase === 'playing' && !S.flip) processPending();
+  }
   else return;
   broadcast();
 }
 
+function resetRoundState(){
+  pending.forEach(a => discard.push(a.type));
+  if(S.flip) S.flip.queue.forEach(x => discard.push(x));
+  pending = []; clearTimeout(flipTimer); S.choose = null; S.flip = null;
+}
+
 function newGame(){
   deck = fullDeck(); discard = [];
-  S.players.forEach(p => { p.total = 0; p.cards = []; p.banked = null; });
+  resetRoundState();
+  S.players.forEach(p => { p.total = 0; p.cards = []; p.sc = 0; p.banked = null; p.bonus = false; });
   S.players = S.players.filter(p => p.connected || p.total > 0);
   S.round = 0; S.starter = -1; S.winner = null; S.log = [];
   addLog('Neues Spiel! Wer zuerst ' + TARGET + ' Punkte hat, gewinnt.');
@@ -199,7 +256,12 @@ function newGame(){
 }
 
 function startRound(){
-  S.players.forEach(p => { discard.push(...p.cards); p.cards = []; p.banked = null; p.bonus = false; p.status = p.connected ? 'active' : 'away'; });
+  resetRoundState();
+  S.players.forEach(p => {
+    discard.push(...p.cards); for(let k=0;k<p.sc;k++) discard.push('S');
+    p.cards = []; p.sc = 0; p.banked = null; p.bonus = false;
+    p.status = p.connected ? 'active' : 'away';
+  });
   const n = S.players.length;
   let s = S.starter;
   for(let k=0;k<n;k++){ s = (s+1) % n; if(S.players[s].status === 'active') break; }
@@ -208,26 +270,125 @@ function startRound(){
   if(S.players[s].status !== 'active') checkRoundOver();
 }
 
-function draw(idx){
-  const p = S.players[idx];
+function drawCard(){
   if(!deck.length){
     deck = shuffle(discard); discard = [];
-    addLog('Der Ablagestapel wurde neu gemischt.');
-    if(!deck.length){ addLog('Keine Karten mehr – ' + p.name + ' muss aussteigen.'); stop(idx); return; }
+    if(deck.length) addLog('Der Ablagestapel wurde neu gemischt.');
   }
-  const v = deck.pop();
-  p.cards.push(v);
-  const burned = p.cards.filter(x => x === v).length > 1;
+  return deck.length ? deck.pop() : null;
+}
+
+// Karte an Spieler idx geben. Ergebnis: 'ok' | 'burned' | 'seven' | 'action'
+function takeCard(idx, v){
+  const p = S.players[idx];
   S.seq++;
-  S.last = { seq:S.seq, pid:p.id, name:p.name, v, burned };
-  if(burned){
-    p.status = 'burned'; p.banked = 0;
-    addLog(`🔥 ${p.name} zieht eine zweite ${v} und ist VERBRANNT! (${sum(p.cards) - v} Punkte weg)`);
-  } else {
-    addLog(`${p.name} zieht eine ${v} (Runde: ${sum(p.cards)}).`);
-    if(p.cards.length >= SEVEN){ sevenCards(idx); return; }
+  const base = { seq:S.seq, pid:p.id, name:p.name };
+  if(v === 'S'){
+    p.sc++;
+    S.last = { ...base, kind:'S' };
+    addLog(`❤ ${p.name} zieht eine Second Chance.`);
+    return 'ok';
   }
+  if(v === 'F' || v === 'T'){
+    S.last = { ...base, kind:'act', v };
+    addLog(`${p.name} zieht ${ACT[v].ico} ${ACT[v].name}.`);
+    return 'action';
+  }
+  if(p.cards.includes(v)){
+    if(p.sc > 0){
+      p.sc--; discard.push(v, 'S');
+      S.last = { ...base, kind:'saved', v };
+      addLog(`❤ ${p.name} zieht eine zweite ${v} – die Second Chance rettet! (Herz verbraucht)`);
+      return 'ok';
+    }
+    p.cards.push(v); p.status = 'burned'; p.banked = 0;
+    S.last = { ...base, kind:'num', v, burned:true };
+    addLog(`🔥 ${p.name} zieht eine zweite ${v} und ist VERBRANNT! (${sum(p.cards) - v} Punkte weg)`);
+    return 'burned';
+  }
+  p.cards.push(v);
+  S.last = { ...base, kind:'num', v };
+  addLog(`${p.name} zieht eine ${v} (Runde: ${sum(p.cards)}).`);
+  if(p.cards.length >= SEVEN){ sevenCards(idx); return 'seven'; }
+  return 'ok';
+}
+
+function draw(idx){
+  const v = drawCard();
+  if(v === null){ addLog('Keine Karten mehr – ' + S.players[idx].name + ' muss aussteigen.'); stop(idx); return; }
+  const r = takeCard(idx, v);
+  if(r === 'seven') return;
+  if(r === 'action') pending.push({ type:v, chooser:idx });
+  processPending();
+}
+
+// offene Aktionskarten abarbeiten, danach ist der nächste Spieler dran
+function processPending(){
+  if(S.phase !== 'playing'){ resetRoundState(); return; }
+  if(S.flip) return;
+  while(pending.length){
+    const a = pending[0];
+    const chooser = S.players[a.chooser];
+    if(chooser.status !== 'active'){
+      pending.shift(); discard.push(a.type);
+      addLog(`${ACT[a.type].ico} ${ACT[a.type].name} von ${chooser.name} verfällt.`);
+      continue;
+    }
+    const cands = activeIdx();
+    if(cands.length === 1){
+      pending.shift();
+      if(cands[0] === a.chooser) addLog(`Sonst ist niemand mehr in der Runde – ${chooser.name} muss ${ACT[a.type].name} selbst nehmen.`);
+      applyAction(a.type, a.chooser, cands[0]);
+      if(S.phase !== 'playing') return;
+      if(S.flip) return;
+      continue;
+    }
+    S.choose = { type:a.type, chooser:a.chooser };
+    return;
+  }
+  S.choose = null;
   advanceTurn();
+}
+
+function applyAction(type, chooser, target){
+  discard.push(type);
+  const c = S.players[chooser], t = S.players[target];
+  const who = target === chooser ? 'sich selbst' : t.name;
+  S.seq++;
+  if(type === 'F'){
+    const pts = sum(t.cards);
+    t.status = 'frozen'; t.banked = pts; t.total += pts;
+    S.last = { seq:S.seq, pid:t.id, name:t.name, kind:'freeze', by:c.name, self:target===chooser, pts };
+    addLog(`❄ ${c.name} friert ${who} ein – ${t.name} sichert ${pts} Punkte (gesamt ${t.total}).`);
+    if(t.total >= TARGET) win(t);
+  } else {
+    S.last = { seq:S.seq, pid:t.id, name:t.name, kind:'flip', by:c.name, self:target===chooser };
+    addLog(`🔁 ${c.name} gibt ${who} Flip Three – ${t.name} muss 3 Karten ziehen!`);
+    S.flip = { target, left:3, queue:[] };
+    clearTimeout(flipTimer);
+    flipTimer = setTimeout(flipStep, FLIP_DELAY);
+  }
+}
+
+function flipStep(){
+  if(!S.flip || S.phase !== 'playing') return;
+  const f = S.flip, p = S.players[f.target];
+  if(p.status !== 'active'){ endFlip(); broadcast(); return; }
+  const v = drawCard();
+  if(v === null){ endFlip(); broadcast(); return; }
+  f.left--;
+  const r = takeCard(f.target, v);
+  if(r === 'seven'){ broadcast(); return; }
+  if(r === 'action') f.queue.push(v);
+  if(f.left > 0 && p.status === 'active'){ broadcast(); flipTimer = setTimeout(flipStep, FLIP_DELAY); return; }
+  endFlip(); broadcast();
+}
+function endFlip(){
+  const f = S.flip; S.flip = null;
+  const p = S.players[f.target];
+  if(p.status === 'active') pending.unshift(...f.queue.map(type => ({ type, chooser:f.target })));
+  else f.queue.forEach(x => { discard.push(x); addLog(`${ACT[x].ico} ${ACT[x].name} von ${p.name} verfällt.`); });
+  processPending();
 }
 
 function sevenCards(idx){
@@ -241,12 +402,9 @@ function sevenCards(idx){
     if(j !== idx) addLog(`${q.name} sichert ${pts} Punkte (gesamt ${q.total}).`);
   });
   addLog(`${p.name} sichert ${p.banked} Punkte inkl. Bonus (gesamt ${p.total}).`);
+  resetRoundState();
   const best = [...S.players].sort((a,b) => b.total - a.total)[0];
-  if(best.total >= TARGET){
-    S.phase = 'gameover'; S.winner = best.id;
-    addLog(`🏆 ${best.name} gewinnt mit ${best.total} Punkten!`);
-    return;
-  }
+  if(best.total >= TARGET){ win(best); return; }
   endRound();
 }
 
@@ -255,14 +413,16 @@ function stop(idx){
   const pts = sum(p.cards);
   p.status = 'stopped'; p.banked = pts; p.total += pts;
   S.seq++;
-  S.last = { seq:S.seq, pid:p.id, name:p.name, stop:true, pts };
+  S.last = { seq:S.seq, pid:p.id, name:p.name, kind:'stop', pts };
   addLog(`✅ ${p.name} steigt aus und sichert ${pts} Punkte (gesamt ${p.total}).`);
-  if(p.total >= TARGET){
-    S.phase = 'gameover'; S.winner = p.id;
-    addLog(`🏆 ${p.name} gewinnt mit ${p.total} Punkten!`);
-    return;
-  }
+  if(p.total >= TARGET){ win(p); return; }
   if(S.turn === idx) advanceTurn(); else checkRoundOver();
+}
+
+function win(p){
+  resetRoundState();
+  S.phase = 'gameover'; S.winner = p.id;
+  addLog(`🏆 ${p.name} gewinnt mit ${p.total} Punkten!`);
 }
 
 function advanceTurn(){
@@ -278,6 +438,7 @@ function checkRoundOver(){
   advanceTurn();
 }
 function endRound(){
+  resetRoundState();
   S.phase = 'roundend';
   addLog(`Runde ${S.round} vorbei.`);
 }
@@ -285,7 +446,8 @@ function endRound(){
 function broadcast(){
   if(!isHost) return;
   const src = deck.length ? deck : discard;
-  const rem = {}; for(let v=0;v<=13;v++) rem[v]=0; src.forEach(v => rem[v]++);
+  const rem = {}; for(let v=0;v<=13;v++) rem[v]=0; rem.F=0; rem.T=0; rem.S=0;
+  src.forEach(v => rem[v]++);
   S.deckCount = deck.length; S.remaining = rem; S.reshuffleNext = !deck.length;
   for(const pid in conns){ try{ conns[pid].send({t:'state', s:S, you:pid}); }catch(e){} }
   onState();
@@ -313,30 +475,37 @@ function joinGame(code){
   });
 }
 
-function send(a){
-  if(isHost) act('host', a);
-  else if(hostConn) hostConn.send({ t:'act', a });
+function send(a, target){
+  if(isHost) act('host', a, target);
+  else if(hostConn) hostConn.send({ t:'act', a, target });
 }
 
 // ---------------- UI ----------------
 function onState(){
   if(S && S.last && S.last.seq > lastSeenSeq){
     lastSeenSeq = S.last.seq;
-    const me = S.last.pid === myId;
-    if(S.last.seven) showToast(me ? `⭐ ${SEVEN} Karten! +${BONUS} Mutbonus` : `⭐ ${S.last.name} hat ${SEVEN} Karten – Runde vorbei!`, true);
-    else if(S.last.burned) showToast(me ? `🔥 Verbrannt! Zweite ${S.last.v}.` : `🔥 ${S.last.name} ist verbrannt!`, false);
-    else if(S.last.stop) showToast(me ? `✅ ${S.last.pts} Punkte gesichert` : `✅ ${S.last.name} sichert ${S.last.pts}`, true);
+    const L = S.last, me = L.pid === myId;
+    if(L.seven) showToast(me ? `⭐ ${SEVEN} Karten! +${BONUS} Mutbonus` : `⭐ ${L.name} hat ${SEVEN} Karten – Runde vorbei!`, 'ok');
+    else if(L.burned) showToast(me ? `🔥 Verbrannt! Zweite ${L.v}.` : `🔥 ${L.name} ist verbrannt!`, '');
+    else if(L.kind === 'stop') showToast(me ? `✅ ${L.pts} Punkte gesichert` : `✅ ${L.name} sichert ${L.pts}`, 'ok');
+    else if(L.kind === 'S') showToast(me ? '❤ Second Chance! Einmal gerettet.' : `❤ ${L.name} hat eine Second Chance`, 'heart');
+    else if(L.kind === 'saved') showToast(me ? `❤ Puh! Die Second Chance rettet deine ${L.v}` : `❤ Second Chance rettet ${L.name}!`, 'heart');
+    else if(L.kind === 'freeze') showToast(me ? `❄ Du bist eingefroren (+${L.pts})` : `❄ ${L.name} ist eingefroren (+${L.pts})`, 'ice');
+    else if(L.kind === 'flip') showToast(me ? '🔁 Flip Three! Du ziehst 3 Karten…' : `🔁 ${L.name} muss 3 Karten ziehen!`, 'flip');
+    else if(L.kind === 'act') showToast(me ? `${ACT[L.v].ico} Du hast ${ACT[L.v].name} gezogen!` : `${ACT[L.v].ico} ${L.name} zieht ${ACT[L.v].name}`, ACT[L.v].cls);
   }
   render();
 }
-function showToast(msg, ok){
-  toast = { msg, ok }; clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { toast = null; render(); }, 2200);
+function showToast(msg, cls){
+  toast = { msg, cls }; clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toast = null; render(); }, 2400);
 }
 
 function cardHTML(v, cls=''){
+  if(ACT[v]) return `<div class="card act ${v} ${cls}"><span class="ico">${v==='S'?HEART:ACT[v].ico}</span>${ACT[v].name}</div>`;
   return `<div class="card ${cls}" style="--c:${color(v)}"><small>${v}</small>${v}</div>`;
 }
+const hearts = n => n > 0 ? `<span class="hearts" title="Second Chance">${HEART.repeat(n)}</span>` : '';
 
 function render(){
   let h = '';
@@ -344,11 +513,26 @@ function render(){
   if(!S) h += homeView();
   else if(S.phase === 'lobby') h += lobbyView();
   else h += gameView();
-  if(toast) h += `<div class="toast ${toast.ok?'ok':''}">${esc(toast.msg)}</div>`;
+  if(toast) h += `<div class="toast ${toast.cls}">${esc(toast.msg)}</div>`;
   const focused = document.activeElement && document.activeElement.id;
   app.innerHTML = h;
   if(focused){ const el = document.getElementById(focused); if(el && el.tagName === 'INPUT'){ el.focus(); const l = el.value.length; el.setSelectionRange(l,l); } }
   bind();
+}
+
+function rulesHTML(){
+  return `<ul class="small">
+      <li>Der Stapel hat 101 Karten: jede Zahl 1–13 kommt so oft vor wie ihr Wert (1× die 1, 13× die 13), dazu eine 0 und 9 Aktionskarten.</li>
+      <li>Reihum zieht jeder Spieler eine Karte. Alle Karten liegen offen.</li>
+      <li>Ziehst du eine Zahl, die schon vor dir liegt, bist du <b>verbrannt</b>: alle Punkte dieser Runde sind weg.</li>
+      <li>Du kannst jederzeit aussteigen und die Summe deiner Karten sichern. Die anderen spielen weiter, bis alle ausgestiegen oder verbrannt sind.</li>
+      <li>Hat jemand ${SEVEN} Zahlenkarten offen, endet die Runde sofort für alle: Alle, die noch dabei sind, sichern ihre Punkte, und wer die ${SEVEN} Karten hat, bekommt ${BONUS} Bonuspunkte für seinen Mut.</li>
+      <li><b>❄ Freeze</b> (3×): Du wählst einen Spieler, der noch in der Runde ist (auch dich selbst). Er ist eingefroren: Er sichert seine Punkte und darf in dieser Runde nicht mehr ziehen.</li>
+      <li><b>3× Flip Three</b> (3×): Du wählst einen Spieler, der noch in der Runde ist (auch dich selbst). Er muss sofort nacheinander 3 Karten ziehen – das Spiel zieht automatisch.</li>
+      <li><b>❤ Second Chance</b> (3×): Behältst du selbst. Ziehst du eine doppelte Zahl, rettet sie dich einmal; die doppelte Karte und das Herz werden abgelegt.</li>
+      <li>Ist bei Freeze oder Flip Three niemand anderes mehr in der Runde, musst du die Karte selbst nehmen.</li>
+      <li>Wer zuerst ${TARGET} Punkte gesichert hat, gewinnt sofort.</li>
+    </ul>`;
 }
 
 function homeView(){
@@ -373,17 +557,7 @@ function homeView(){
       <button id="host" class="${hashCode?'':'primary'}" style="width:100%" ${connecting?'disabled':''}>${connecting?'Verbinde…':'Spiel erstellen'}</button>
     </div>
   </div>
-  <details class="box"><summary>Regeln</summary>
-    <ul class="small">
-      <li>Der Stapel hat 92 Karten: jede Zahl 1–13 kommt so oft vor wie ihr Wert (1× die 1, 13× die 13), dazu eine einzelne 0.</li>
-      <li>Reihum zieht jeder Spieler eine Karte. Alle Karten liegen offen.</li>
-      <li>Ziehst du eine Zahl, die schon vor dir liegt, bist du <b>verbrannt</b>: alle Punkte dieser Runde sind weg.</li>
-      <li>Du kannst jederzeit aussteigen und die Summe deiner Karten sichern.</li>
-      <li>Die anderen spielen weiter, bis alle ausgestiegen oder verbrannt sind.</li>
-      <li>Hat jemand ${SEVEN} Karten offen liegen, endet die Runde sofort für alle: Alle, die noch im Spiel sind, sichern ihre Punkte, und wer die ${SEVEN} Karten hat, bekommt ${BONUS} Bonuspunkte für seinen Mut.</li>
-      <li>Wer zuerst ${TARGET} Punkte gesichert hat, gewinnt sofort.</li>
-    </ul>
-  </details>`;
+  <details class="box"><summary>Regeln</summary>${rulesHTML()}</details>`;
 }
 
 function lobbyView(){
@@ -399,12 +573,13 @@ function lobbyView(){
   </div>
   <div class="box">
     <h3 style="margin-top:0">Spieler (${S.players.length}/8)</h3>
-    <ul class="plist">${S.players.map(p => `<li><span>${esc(p.name)}${p.id===myId?'<span class="you">DU</span>':''}</span><span class="muted small">${p.id==='host'?'Gastgeber':'bereit'}</span></li>`).join('')}</ul>
+    <ul class="plist">${S.players.map(p => `<li><span>${esc(p.name)}${p.id===myId?' <span class="you">DU</span>':''}</span><span class="muted small">${p.id==='host'?'Gastgeber':'bereit'}</span></li>`).join('')}</ul>
   </div>
   ${isHost
     ? `<button id="start" class="primary" style="width:100%;padding:16px">Spiel starten</button>
        ${S.players.length<2?'<p class="muted small" style="text-align:center">Du kannst auch alleine zum Üben starten.</p>':''}`
-    : `<p class="muted" style="text-align:center">Warte, bis der Gastgeber das Spiel startet…</p>`}`;
+    : `<p class="muted" style="text-align:center">Warte, bis der Gastgeber das Spiel startet…</p>`}
+  <details class="box"><summary>Regeln</summary>${rulesHTML()}</details>`;
 }
 
 function gameView(){
@@ -420,37 +595,49 @@ function gameView(){
       <span class="pill">Code <b>${esc(S.room)}</b></span>
     </div></div>`;
 
+  if(S.phase === 'playing' && S.flip){
+    const t = S.players[S.flip.target];
+    h += `<div class="banner flip">🔁 Flip Three: ${t.id===myId?'Du ziehst':esc(t.name)+' zieht'} automatisch – noch ${S.flip.left} Karte${S.flip.left===1?'':'n'}</div>`;
+  } else if(S.phase === 'playing' && S.choose){
+    const c = S.players[S.choose.chooser];
+    if(c.id !== myId) h += `<div class="banner choose">${ACT[S.choose.type].ico} ${esc(c.name)} wählt, wer ${S.choose.type==='F'?'eingefroren wird':'Flip Three bekommt'}…</div>`;
+  }
+
   h += `<div class="players">` + order.map(p => {
     const i = S.players.indexOf(p);
-    const isTurn = S.phase==='playing' && i===S.turn && p.status==='active';
+    const flipping = S.phase==='playing' && S.flip && S.flip.target===i;
+    const isTurn = S.phase==='playing' && !S.flip && i===S.turn && p.status==='active';
     const rs = sum(p.cards);
-    const lastIsMine = S.last && S.last.pid===p.id && !S.last.stop;
     let badge = '';
     if(p.status==='burned') badge = '<span class="badge burned">🔥 Verbrannt</span>';
+    else if(p.status==='frozen') badge = `<span class="badge frozen">❄ Eingefroren +${p.banked}</span>`;
     else if(p.status==='stopped') badge = `<span class="badge stopped">${p.bonus?'⭐':'✓'} +${p.banked} gesichert${p.bonus?' (inkl. '+BONUS+' Mut)':''}</span>`;
     else if(p.status==='away') badge = '<span class="badge away">offline</span>';
+    else if(flipping) badge = '<span class="badge flip">🔁 Flip Three</span>';
     else if(isTurn) badge = '<span class="badge turn">am Zug</span>';
     else badge = '<span class="badge">spielt</span>';
-    const sorted = p.cards.map((v,k)=>({v,k}));
+    const L = S.last;
+    const newIdx = L && L.pid===p.id && L.kind==='num' ? p.cards.length-1 : -1;
     const dupV = p.status==='burned' ? p.cards[p.cards.length-1] : null;
     const totalPct = Math.min(100, p.total/TARGET*100);
     const pendPct = Math.min(100, (p.total + (p.status==='active'?rs:0))/TARGET*100);
-    return `<div class="pl ${isTurn?'turn':''} ${p.status}">
+    return `<div class="pl ${isTurn?'turn':''} ${flipping?'flipping':''} ${p.status}">
       <div class="plhead">
-        <div class="name">${esc(p.name)}${p.id===myId?'<span class="you">DU</span>':''}</div>
+        <div class="name">${esc(p.name)}${p.id===myId?'<span class="you">DU</span>':''}${hearts(p.sc)}</div>
         ${badge}
       </div>
-      <div class="scores"><span>Gesamt <b>${p.total}</b></span><span>Runde <b style="color:${p.status==='burned'?'var(--bad)':'var(--accent2)'}">${p.status==='burned'?0:rs}</b></span></div>
+      <div class="scores"><span>Gesamt <b>${p.total}</b></span><span>Runde <b style="color:${p.status==='burned'?'var(--bad)':'var(--accent2)'}">${p.status==='burned'?0:rs}</b></span><span>Karten <b>${p.cards.length}</b>/${SEVEN}</span></div>
       <div class="bar"><i class="pend" style="width:${pendPct}%"></i><i style="width:${totalPct}%"></i></div>
-      <div class="cards">${p.cards.length ? sorted.map(({v,k}) => cardHTML(v,
-          (dupV===v ? 'dup ' : '') + (lastIsMine && k===p.cards.length-1 ? 'new' : ''))).join('')
+      <div class="cards">${p.cards.length ? p.cards.map((v,k) => cardHTML(v,
+          (dupV===v ? 'dup ' : '') + (k===newIdx ? 'new' : ''))).join('')
         : '<span class="empty">Noch keine Karten</span>'}</div>
     </div>`;
   }).join('') + `</div>`;
 
   // actions
   if(S.phase === 'playing' && me){
-    const myTurn = cur && cur.id===myId && me.status==='active';
+    const busy = !!(S.choose || S.flip);
+    const myTurn = !busy && cur && cur.id===myId && me.status==='active';
     const rs = sum(me.cards);
     let inner = '';
     if(me.status === 'active'){
@@ -458,30 +645,46 @@ function gameView(){
       const total = Object.values(rem).reduce((a,b)=>a+b,0) || 1;
       const bad = [...new Set(me.cards)].reduce((a,v)=>a+(rem[v]||0),0);
       const risk = Math.round(bad/total*100);
-      const cls = risk>=40?'hi':risk>=20?'mid':'lo';
+      const cls = me.sc>0 ? 'lo' : risk>=40?'hi':risk>=20?'mid':'lo';
+      const waitTxt = busy ? 'Aktionskarte läuft…' : 'Warte auf '+esc(cur?cur.name:'…');
       inner = `<div class="row">
-          <button id="draw" class="primary" ${myTurn?'':'disabled'}>${myTurn?'Karte ziehen':'Warte auf '+esc(cur?cur.name:'…')}</button>
-          <button id="stop" class="safe">Aussteigen &amp; ${rs} sichern</button>
+          <button id="draw" class="primary" ${myTurn?'':'disabled'}>${myTurn?'Karte ziehen':waitTxt}</button>
+          <button id="stop" class="safe" ${busy?'disabled':''}>Aussteigen &amp; ${rs} sichern</button>
         </div>
-        <div class="risk"><span>Verbrennungsrisiko beim nächsten Zug: <b class="${cls}">${risk}%</b></span>
+        <div class="risk"><span>Verbrennungsrisiko beim nächsten Zug: <b class="${cls}">${risk}%</b>${me.sc>0?' – aber dein ❤ rettet dich':''}</span>
         <span>Nach Sichern: <b>${me.total+rs}</b> / ${TARGET}</span></div>
         <details style="margin-top:8px"><summary>Noch im Stapel${S.reshuffleNext?' (nach Neumischen)':''}</summary>
-          <div class="deckinfo">${Array.from({length:14},(_,k)=>k).map(v=>`<span class="${me.cards.includes(v)?'warn':''}">${v}: <b>${rem[v]||0}</b></span>`).join('')}</div>
+          <div class="deckinfo">${Array.from({length:14},(_,k)=>k).map(v=>`<span class="${me.cards.includes(v)?'warn':''}">${v}: <b>${rem[v]||0}</b></span>`).join('')}
+          ${['F','T','S'].map(a=>`<span>${ACT[a].ico} ${ACT[a].name}: <b>${rem[a]||0}</b></span>`).join('')}</div>
         </details>`;
     } else {
-      inner = `<div class="muted" style="text-align:center">${me.status==='burned'?'🔥 Du bist verbrannt.':'✓ Du hast '+me.banked+' Punkte gesichert.'} ${cur?esc(cur.name)+' ist am Zug.':''}</div>`;
+      const st = me.status==='burned' ? '🔥 Du bist verbrannt.' : me.status==='frozen' ? `❄ Du bist eingefroren und hast ${me.banked} Punkte gesichert.` : `✓ Du hast ${me.banked} Punkte gesichert.`;
+      inner = `<div class="muted" style="text-align:center">${st} ${cur&&cur.status==='active'?esc(cur.name)+' ist am Zug.':''}</div>`;
     }
     h += `<div class="actions"><div class="inner">${inner}</div></div>`;
   }
 
   h += `<div class="box" style="margin-top:14px"><h3 style="margin-top:0">Verlauf</h3><ul class="log">${S.log.map(l=>`<li>${esc(l)}</li>`).join('')}</ul></div>`;
 
+  // Ziel wählen
+  if(S.phase === 'playing' && S.choose && S.players[S.choose.chooser].id === myId){
+    const type = S.choose.type;
+    const cands = S.players.map((p,i)=>({p,i})).filter(x=>x.p.status==='active');
+    h += `<div class="overlay"><div class="modal" style="text-align:center">
+      ${cardHTML(type,'big new')}
+      <h2>${type==='F'?'Wen willst du einfrieren?':'Wer muss 3 Karten ziehen?'}</h2>
+      <p class="muted small" style="margin-top:-6px">${type==='F'?'Der Spieler sichert seine Punkte und darf diese Runde nicht mehr ziehen.':'Der Spieler zieht sofort automatisch 3 Karten.'}</p>
+      <div class="targets">${cands.map(({p,i})=>`<button data-t="${i}" class="${p.id===myId?'':'primary'}">
+        <span>${p.id===myId?'Mich selbst':esc(p.name)} ${hearts(p.sc)}</span><span class="small">${sum(p.cards)} Pkt · ${p.cards.length} Karten</span></button>`).join('')}</div>
+    </div></div>`;
+  }
+
   if(S.phase === 'roundend'){
     const ranked = [...S.players].sort((a,b)=>b.total-a.total);
     h += `<div class="overlay"><div class="modal">
       <h2>Runde ${S.round} vorbei</h2>
-      <ul class="plist">${ranked.map(p=>`<li><span>${esc(p.name)}${p.id===myId?'<span class="you">DU</span>':''}</span>
-        <span>${p.status==='burned'?'<span style="color:var(--bad)">🔥 0</span>':'<span style="color:var(--good)">'+(p.bonus?'⭐ ':'')+'+'+(p.banked||0)+'</span>'} → <b>${p.total}</b></span></li>`).join('')}</ul>
+      <ul class="plist">${ranked.map(p=>`<li><span>${esc(p.name)}${p.id===myId?' <span class="you">DU</span>':''}</span>
+        <span>${p.status==='burned'?'<span style="color:var(--bad)">🔥 0</span>':'<span style="color:'+(p.status==='frozen'?'var(--ice)':'var(--good)')+'">'+(p.bonus?'⭐ ':p.status==='frozen'?'❄ ':'')+'+'+(p.banked||0)+'</span>'} → <b>${p.total}</b></span></li>`).join('')}</ul>
       <button id="next" class="primary" style="width:100%;margin-top:16px">Nächste Runde</button>
     </div></div>`;
   }
@@ -517,6 +720,7 @@ function bind(){
   on('next', () => send('next'));
   on('draw', () => send('draw'));
   on('stop', () => send('stop'));
+  document.querySelectorAll('[data-t]').forEach(b => b.onclick = () => send('target', b.dataset.t));
 }
 
 window.addEventListener('keydown', e => {
