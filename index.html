@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Verbrannt!</title>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+:root{
+  --bg:#14110f;--panel:#1f1a17;--panel2:#2a231f;--line:#3a302a;--text:#f3ece6;--muted:#a8998d;
+  --accent:#ff7a2f;--accent2:#ffb347;--good:#5fd38d;--bad:#ff4d4d;--card:#fbf6ef;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{min-height:100vh;background:radial-gradient(ellipse at top,#2b1a10 0%,var(--bg) 60%)}
+#app{max-width:1000px;margin:0 auto;padding:16px}
+h1{font-size:44px;margin:24px 0 4px;letter-spacing:-1px}
+h1 span{color:var(--accent)}
+.sub{color:var(--muted);margin:0 0 24px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:16px}
+input:focus{outline:2px solid var(--accent);border-color:transparent}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:12px 18px;font-weight:600;font-size:15px;background:var(--panel2);color:var(--text);border:1px solid var(--line);transition:transform .08s,filter .15s}
+button:hover:not(:disabled){filter:brightness(1.15)}
+button:active:not(:disabled){transform:scale(.97)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.primary{background:linear-gradient(180deg,var(--accent2),var(--accent));color:#2a1405;border:0}
+button.safe{background:linear-gradient(180deg,#7ee8a8,var(--good));color:#0b2a17;border:0}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row>*{flex:1 1 auto}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}h1{font-size:34px}}
+.code{font-size:34px;font-weight:800;letter-spacing:6px;color:var(--accent2);font-family:ui-monospace,Consolas,monospace}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.err{background:#3a1414;border:1px solid #6b2222;color:#ffb3b3;padding:12px;border-radius:10px;margin-bottom:14px}
+.plist{list-style:none;padding:0;margin:0}
+.plist li{padding:8px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+.plist li:last-child{border:0}
+.topbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:14px}
+.pill{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;color:var(--muted)}
+.pill b{color:var(--text)}
+.players{display:grid;gap:12px}
+.pl{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;position:relative;transition:border-color .2s,box-shadow .2s}
+.pl.turn{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 24px -6px var(--accent)}
+.pl.burned{background:linear-gradient(180deg,#2c1310,var(--panel))}
+.pl.stopped{background:linear-gradient(180deg,#132a1d,var(--panel))}
+.plhead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.name{font-weight:700;font-size:17px}
+.you{font-size:11px;background:var(--accent);color:#2a1405;border-radius:6px;padding:2px 6px;margin-left:6px;vertical-align:middle}
+.badge{font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px;background:var(--panel2);color:var(--muted)}
+.badge.burned{background:var(--bad);color:#fff}
+.badge.stopped{background:var(--good);color:#0b2a17}
+.badge.turn{background:var(--accent);color:#2a1405}
+.badge.away{background:#555;color:#ddd}
+.scores{display:flex;gap:16px;align-items:baseline;font-size:13px;color:var(--muted)}
+.scores b{font-size:20px;color:var(--text)}
+.bar{height:6px;background:var(--panel2);border-radius:99px;overflow:hidden;margin:8px 0 12px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px}
+.bar i.pend{background:rgba(255,179,71,.35)}
+.bar{position:relative}
+.bar i{position:absolute;left:0;top:0}
+.cards{display:flex;flex-wrap:wrap;gap:8px;min-height:84px}
+.empty{color:var(--muted);font-size:13px;align-self:center}
+.card{width:56px;height:80px;border-radius:9px;background:var(--card);color:#1b1410;position:relative;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:28px;box-shadow:0 3px 10px rgba(0,0,0,.4);border-top:7px solid var(--c)}
+.card small{position:absolute;top:3px;left:5px;font-size:11px;color:var(--c)}
+.card.dup{outline:3px solid var(--bad);animation:shake .5s}
+.card.new{animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
+.pl.burned .card:not(.dup){filter:grayscale(.7) brightness(.7)}
+@keyframes pop{from{transform:translateY(-30px) scale(.6) rotate(-8deg);opacity:0}to{transform:none;opacity:1}}
+@keyframes shake{0%,100%{transform:none}20%{transform:translateX(-6px) rotate(-4deg)}40%{transform:translateX(6px) rotate(4deg)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.actions{position:sticky;bottom:0;background:linear-gradient(180deg,transparent,var(--bg) 30%);padding:18px 0 14px;margin-top:6px}
+.actions .inner{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+.actions button{padding:16px 18px;font-size:17px}
+.risk{font-size:13px;color:var(--muted);margin-top:10px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.risk b.hi{color:var(--bad)}.risk b.mid{color:var(--accent2)}.risk b.lo{color:var(--good)}
+.log{font-size:13px;color:var(--muted);max-height:180px;overflow:auto;padding-left:18px;margin:0}
+.log li{margin:3px 0}
+.overlay{position:fixed;inset:0;background:rgba(10,7,5,.75);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10;backdrop-filter:blur(3px)}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;max-width:440px;width:100%}
+.modal h2{margin:0 0 14px}
+.toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:var(--bad);color:#fff;font-weight:800;padding:12px 20px;border-radius:12px;z-index:20;animation:pop .4s;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.toast.ok{background:var(--good);color:#0b2a17}
+.deckinfo{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.deckinfo span{font-size:11px;background:var(--panel2);border-radius:6px;padding:3px 6px;color:var(--muted)}
+.deckinfo span b{color:var(--text)}
+.deckinfo span.warn{outline:1px solid var(--bad)}
+details summary{cursor:pointer;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const TARGET = 100;
+const PREFIX = 'verbrannt-kartenspiel-v1-';
+const app = document.getElementById('app');
+
+let peer = null, isHost = false, myId = null, hostConn = null;
+let conns = {};          // host: peerId -> connection
+let S = null;            // shared game state
+let deck = [], discard = []; // host only
+let errorMsg = '', connecting = false;
+let lastSeenSeq = 0, toast = null, toastTimer = null;
+
+function store(k, v){ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k, v); }catch(e){ return null; } }
+let myName = store('verbrannt-name') || '';
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const fullDeck = () => { const d=[]; for(let v=1; v<=13; v++) for(let i=0;i<v;i++) d.push(v); return shuffle(d); };
+const sum = a => a.reduce((x,y)=>x+y,0);
+const color = v => `hsl(${(v*29+10)%360} 75% 45%)`;
+function makeCode(){ const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s=''; for(let i=0;i<5;i++) s+=c[Math.floor(Math.random()*c.length)]; return s; }
+function inviteLink(room){ return location.href.split('#')[0] + '#' + room; }
+function parseCode(x){ x = (x||'').trim(); if(x.includes('#')) x = x.split('#').pop(); return x.toUpperCase().replace(/[^A-Z0-9]/g,''); }
+
+// ---------------- HOST LOGIC ----------------
+function hostGame(){
+  connecting = true; errorMsg = ''; render();
+  const room = makeCode();
+  peer = new Peer(PREFIX + room);
+  peer.on('open', () => {
+    isHost = true; myId = 'host'; connecting = false;
+    S = { room, phase:'lobby', round:0, turn:0, starter:-1, seq:0, last:null, winner:null, log:[],
+          players:[newPlayer('host', myName)], deckCount:0, remaining:{} };
+    history.replaceState(null,'','#'+room);
+    broadcast();
+  });
+  peer.on('connection', c => {
+    c.on('data', d => onHostMsg(c, d));
+    c.on('close', () => onClientLeft(c.peer));
+    c.on('error', () => onClientLeft(c.peer));
+  });
+  peer.on('error', e => {
+    if(e.type === 'unavailable-id'){ peer.destroy(); hostGame(); return; }
+    if(e.type === 'peer-unavailable') return;
+    errorMsg = 'Verbindungsfehler: ' + e.type; connecting = false; render();
+  });
+  peer.on('disconnected', () => { try{ peer.reconnect(); }catch(e){} });
+}
+function newPlayer(id, name){ return { id, name, total:0, cards:[], status:'active', banked:null, connected:true }; }
+
+function onHostMsg(c, d){
+  if(!d || typeof d !== 'object') return;
+  if(d.t === 'join'){
+    const name = String(d.name||'Spieler').slice(0,20);
+    let p = S.players.find(p => !p.connected && p.name.toLowerCase() === name.toLowerCase());
+    if(p){ p.id = c.peer; p.connected = true; addLog(`${p.name} ist wieder da.`); }
+    else if(S.phase !== 'lobby'){ c.send({t:'error', msg:'Das Spiel läuft schon. Mit gleichem Namen kannst du nur wieder einsteigen, wenn du vorher drin warst.'}); return; }
+    else if(S.players.length >= 8){ c.send({t:'error', msg:'Das Spiel ist voll (max. 8 Spieler).'}); return; }
+    else { S.players.push(newPlayer(c.peer, name)); addLog(`${name} ist beigetreten.`); }
+    conns[c.peer] = c;
+    broadcast();
+  } else if(d.t === 'act'){
+    act(c.peer, d.a);
+  }
+}
+
+function onClientLeft(pid){
+  if(!conns[pid]) return;
+  delete conns[pid];
+  const i = S.players.findIndex(p => p.id === pid);
+  if(i < 0) return;
+  const p = S.players[i];
+  if(S.phase === 'lobby'){ S.players.splice(i,1); addLog(`${p.name} hat das Spiel verlassen.`); broadcast(); return; }
+  p.connected = false;
+  addLog(`${p.name} hat die Verbindung verloren.`);
+  if(S.phase === 'playing' && p.status === 'active'){
+    p.status = 'away';
+    if(S.turn === i) advanceTurn(); else checkRoundOver();
+  }
+  broadcast();
+}
+
+function addLog(msg){ S.log.unshift(msg); if(S.log.length > 60) S.log.pop(); }
+
+function act(pid, a){
+  const idx = S.players.findIndex(p => p.id === pid);
+  if(idx < 0) return;
+  const p = S.players[idx];
+  if(a === 'start' && pid === 'host' && S.phase === 'lobby'){ newGame(); }
+  else if(a === 'restart' && pid === 'host' && S.phase === 'gameover'){ newGame(); }
+  else if(a === 'next' && S.phase === 'roundend'){ startRound(); }
+  else if(a === 'draw' && S.phase === 'playing' && S.turn === idx && p.status === 'active'){ draw(idx); }
+  else if(a === 'stop' && S.phase === 'playing' && p.status === 'active'){ stop(idx); }
+  else return;
+  broadcast();
+}
+
+function newGame(){
+  deck = fullDeck(); discard = [];
+  S.players.forEach(p => { p.total = 0; p.cards = []; p.banked = null; });
+  S.players = S.players.filter(p => p.connected || p.total > 0);
+  S.round = 0; S.starter = -1; S.winner = null; S.log = [];
+  addLog('Neues Spiel! Wer zuerst ' + TARGET + ' Punkte hat, gewinnt.');
+  startRound();
+}
+
+function startRound(){
+  S.players.forEach(p => { discard.push(...p.cards); p.cards = []; p.banked = null; p.status = p.connected ? 'active' : 'away'; });
+  const n = S.players.length;
+  let s = S.starter;
+  for(let k=0;k<n;k++){ s = (s+1) % n; if(S.players[s].status === 'active') break; }
+  S.starter = s; S.turn = s; S.round++; S.phase = 'playing'; S.last = null;
+  addLog(`— Runde ${S.round}: ${S.players[s].name} beginnt —`);
+  if(S.players[s].status !== 'active') checkRoundOver();
+}
+
+function draw(idx){
+  const p = S.players[idx];
+  if(!deck.length){
+    deck = shuffle(discard); discard = [];
+    addLog('Der Ablagestapel wurde neu gemischt.');
+    if(!deck.length){ addLog('Keine Karten mehr – ' + p.name + ' muss aussteigen.'); stop(idx); return; }
+  }
+  const v = deck.pop();
+  p.cards.push(v);
+  const burned = p.cards.filter(x => x === v).length > 1;
+  S.seq++;
+  S.last = { seq:S.seq, pid:p.id, name:p.name, v, burned };
+  if(burned){
+    p.status = 'burned'; p.banked = 0;
+    addLog(`🔥 ${p.name} zieht eine zweite ${v} und ist VERBRANNT! (${sum(p.cards) - v} Punkte weg)`);
+  } else {
+    addLog(`${p.name} zieht eine ${v} (Runde: ${sum(p.cards)}).`);
+  }
+  advanceTurn();
+}
+
+function stop(idx){
+  const p = S.players[idx];
+  const pts = sum(p.cards);
+  p.status = 'stopped'; p.banked = pts; p.total += pts;
+  S.seq++;
+  S.last = { seq:S.seq, pid:p.id, name:p.name, stop:true, pts };
+  addLog(`✅ ${p.name} steigt aus und sichert ${pts} Punkte (gesamt ${p.total}).`);
+  if(p.total >= TARGET){
+    S.phase = 'gameover'; S.winner = p.id;
+    addLog(`🏆 ${p.name} gewinnt mit ${p.total} Punkten!`);
+    return;
+  }
+  if(S.turn === idx) advanceTurn(); else checkRoundOver();
+}
+
+function advanceTurn(){
+  const n = S.players.length;
+  for(let k=1;k<=n;k++){
+    const j = (S.turn + k) % n;
+    if(S.players[j].status === 'active'){ S.turn = j; return; }
+  }
+  endRound();
+}
+function checkRoundOver(){
+  if(S.players[S.turn] && S.players[S.turn].status === 'active') return;
+  advanceTurn();
+}
+function endRound(){
+  S.phase = 'roundend';
+  addLog(`Runde ${S.round} vorbei.`);
+}
+
+function broadcast(){
+  if(!isHost) return;
+  const src = deck.length ? deck : discard;
+  const rem = {}; for(let v=1;v<=13;v++) rem[v]=0; src.forEach(v => rem[v]++);
+  S.deckCount = deck.length; S.remaining = rem; S.reshuffleNext = !deck.length;
+  for(const pid in conns){ try{ conns[pid].send({t:'state', s:S, you:pid}); }catch(e){} }
+  onState();
+}
+
+// ---------------- CLIENT LOGIC ----------------
+function joinGame(code){
+  code = parseCode(code);
+  if(!code){ errorMsg = 'Bitte einen Spielcode eingeben.'; render(); return; }
+  connecting = true; errorMsg = ''; render();
+  peer = new Peer();
+  peer.on('open', () => {
+    hostConn = peer.connect(PREFIX + code, { reliable:true });
+    hostConn.on('open', () => { hostConn.send({ t:'join', name:myName }); history.replaceState(null,'','#'+code); });
+    hostConn.on('data', d => {
+      if(d.t === 'state'){ S = d.s; myId = d.you; connecting = false; onState(); }
+      else if(d.t === 'error'){ errorMsg = d.msg; connecting = false; S = null; peer.destroy(); render(); }
+    });
+    hostConn.on('close', () => { if(S){ errorMsg = 'Verbindung zum Gastgeber verloren.'; S = null; render(); } });
+  });
+  peer.on('error', e => {
+    connecting = false;
+    errorMsg = e.type === 'peer-unavailable' ? 'Spiel nicht gefunden. Ist der Code richtig und ist der Gastgeber noch online?' : 'Verbindungsfehler: ' + e.type;
+    S = null; render();
+  });
+}
+
+function send(a){
+  if(isHost) act('host', a);
+  else if(hostConn) hostConn.send({ t:'act', a });
+}
+
+// ---------------- UI ----------------
+function onState(){
+  if(S && S.last && S.last.seq > lastSeenSeq){
+    lastSeenSeq = S.last.seq;
+    const me = S.last.pid === myId;
+    if(S.last.burned) showToast(me ? `🔥 Verbrannt! Zweite ${S.last.v}.` : `🔥 ${S.last.name} ist verbrannt!`, false);
+    else if(S.last.stop) showToast(me ? `✅ ${S.last.pts} Punkte gesichert` : `✅ ${S.last.name} sichert ${S.last.pts}`, true);
+  }
+  render();
+}
+function showToast(msg, ok){
+  toast = { msg, ok }; clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toast = null; render(); }, 2200);
+}
+
+function cardHTML(v, cls=''){
+  return `<div class="card ${cls}" style="--c:${color(v)}"><small>${v}</small>${v}</div>`;
+}
+
+function render(){
+  let h = '';
+  if(errorMsg) h += `<div class="err">${esc(errorMsg)}</div>`;
+  if(!S) h += homeView();
+  else if(S.phase === 'lobby') h += lobbyView();
+  else h += gameView();
+  if(toast) h += `<div class="toast ${toast.ok?'ok':''}">${esc(toast.msg)}</div>`;
+  const focused = document.activeElement && document.activeElement.id;
+  app.innerHTML = h;
+  if(focused){ const el = document.getElementById(focused); if(el && el.tagName === 'INPUT'){ el.focus(); const l = el.value.length; el.setSelectionRange(l,l); } }
+  bind();
+}
+
+function homeView(){
+  const hashCode = parseCode(location.hash.slice(1));
+  return `
+  <h1>Verbrannt<span>!</span></h1>
+  <p class="sub">Zieh Karten, sammle Punkte – aber zieh nie eine Zahl doppelt. Wer zuerst ${TARGET} Punkte hat, gewinnt.</p>
+  <div class="box">
+    <label for="name">Dein Name</label>
+    <input id="name" maxlength="20" placeholder="z. B. Leo" value="${esc(myName)}">
+  </div>
+  <div class="grid2">
+    <div class="box">
+      <h3 style="margin-top:0">Spiel beitreten</h3>
+      <label for="code">Spielcode oder Einladungslink</label>
+      <input id="code" placeholder="ABCDE" value="${esc(hashCode)}" style="text-transform:uppercase;margin-bottom:10px">
+      <button id="join" class="${hashCode?'primary':''}" style="width:100%" ${connecting?'disabled':''}>${connecting?'Verbinde…':'Beitreten'}</button>
+    </div>
+    <div class="box">
+      <h3 style="margin-top:0">Neues Spiel</h3>
+      <p class="muted small" style="margin-top:0">Du bist Gastgeber und bekommst einen Link, den du an deine Mitspieler schickst. Lass diesen Tab während des Spiels offen.</p>
+      <button id="host" class="${hashCode?'':'primary'}" style="width:100%" ${connecting?'disabled':''}>${connecting?'Verbinde…':'Spiel erstellen'}</button>
+    </div>
+  </div>
+  <details class="box"><summary>Regeln</summary>
+    <ul class="small">
+      <li>Der Stapel hat 91 Karten: jede Zahl 1–13 kommt so oft vor wie ihr Wert (1× die 1, 13× die 13).</li>
+      <li>Reihum zieht jeder Spieler eine Karte. Alle Karten liegen offen.</li>
+      <li>Ziehst du eine Zahl, die schon vor dir liegt, bist du <b>verbrannt</b>: alle Punkte dieser Runde sind weg.</li>
+      <li>Du kannst jederzeit aussteigen und die Summe deiner Karten sichern.</li>
+      <li>Die anderen spielen weiter, bis alle ausgestiegen oder verbrannt sind.</li>
+      <li>Wer zuerst ${TARGET} Punkte gesichert hat, gewinnt sofort.</li>
+    </ul>
+  </details>`;
+}
+
+function lobbyView(){
+  const link = inviteLink(S.room);
+  return `
+  <h1>Verbrannt<span>!</span></h1>
+  <p class="sub">Warteraum</p>
+  <div class="box">
+    <label>Spielcode</label>
+    <div class="code">${esc(S.room)}</div>
+    <label style="margin-top:12px">Einladungslink – schick ihn an deine Mitspieler</label>
+    <div class="row"><input id="link" readonly value="${esc(link)}" style="flex:3 1 220px"><button id="copy" style="flex:0 0 auto">Kopieren</button></div>
+  </div>
+  <div class="box">
+    <h3 style="margin-top:0">Spieler (${S.players.length}/8)</h3>
+    <ul class="plist">${S.players.map(p => `<li><span>${esc(p.name)}${p.id===myId?'<span class="you">DU</span>':''}</span><span class="muted small">${p.id==='host'?'Gastgeber':'bereit'}</span></li>`).join('')}</ul>
+  </div>
+  ${isHost
+    ? `<button id="start" class="primary" style="width:100%;padding:16px">Spiel starten</button>
+       ${S.players.length<2?'<p class="muted small" style="text-align:center">Du kannst auch alleine zum Üben starten.</p>':''}`
+    : `<p class="muted" style="text-align:center">Warte, bis der Gastgeber das Spiel startet…</p>`}`;
+}
+
+function gameView(){
+  const me = S.players.find(p => p.id === myId);
+  const cur = S.players[S.turn];
+  const order = [...S.players].sort((a,b) => (b.id===myId) - (a.id===myId));
+  let h = `<div class="topbar">
+    <div style="font-size:24px;font-weight:800">Verbrannt<span style="color:var(--accent)">!</span></div>
+    <div class="row" style="flex:0 1 auto;gap:6px">
+      <span class="pill">Runde <b>${S.round}</b></span>
+      <span class="pill">Stapel <b>${S.deckCount}</b></span>
+      <span class="pill">Ziel <b>${TARGET}</b></span>
+      <span class="pill">Code <b>${esc(S.room)}</b></span>
+    </div></div>`;
+
+  h += `<div class="players">` + order.map(p => {
+    const i = S.players.indexOf(p);
+    const isTurn = S.phase==='playing' && i===S.turn && p.status==='active';
+    const rs = sum(p.cards);
+    const lastIsMine = S.last && S.last.pid===p.id && !S.last.stop;
+    let badge = '';
+    if(p.status==='burned') badge = '<span class="badge burned">🔥 Verbrannt</span>';
+    else if(p.status==='stopped') badge = `<span class="badge stopped">✓ +${p.banked} gesichert</span>`;
+    else if(p.status==='away') badge = '<span class="badge away">offline</span>';
+    else if(isTurn) badge = '<span class="badge turn">am Zug</span>';
+    else badge = '<span class="badge">spielt</span>';
+    const sorted = p.cards.map((v,k)=>({v,k}));
+    const dupV = p.status==='burned' ? p.cards[p.cards.length-1] : null;
+    const totalPct = Math.min(100, p.total/TARGET*100);
+    const pendPct = Math.min(100, (p.total + (p.status==='active'?rs:0))/TARGET*100);
+    return `<div class="pl ${isTurn?'turn':''} ${p.status}">
+      <div class="plhead">
+        <div class="name">${esc(p.name)}${p.id===myId?'<span class="you">DU</span>':''}</div>
+        ${badge}
+      </div>
+      <div class="scores"><span>Gesamt <b>${p.total}</b></span><span>Runde <b style="color:${p.status==='burned'?'var(--bad)':'var(--accent2)'}">${p.status==='burned'?0:rs}</b></span></div>
+      <div class="bar"><i class="pend" style="width:${pendPct}%"></i><i style="width:${totalPct}%"></i></div>
+      <div class="cards">${p.cards.length ? sorted.map(({v,k}) => cardHTML(v,
+          (dupV===v ? 'dup ' : '') + (lastIsMine && k===p.cards.length-1 ? 'new' : ''))).join('')
+        : '<span class="empty">Noch keine Karten</span>'}</div>
+    </div>`;
+  }).join('') + `</div>`;
+
+  // actions
+  if(S.phase === 'playing' && me){
+    const myTurn = cur && cur.id===myId && me.status==='active';
+    const rs = sum(me.cards);
+    let inner = '';
+    if(me.status === 'active'){
+      const rem = S.remaining || {};
+      const total = Object.values(rem).reduce((a,b)=>a+b,0) || 1;
+      const bad = [...new Set(me.cards)].reduce((a,v)=>a+(rem[v]||0),0);
+      const risk = Math.round(bad/total*100);
+      const cls = risk>=40?'hi':risk>=20?'mid':'lo';
+      inner = `<div class="row">
+          <button id="draw" class="primary" ${myTurn?'':'disabled'}>${myTurn?'Karte ziehen':'Warte auf '+esc(cur?cur.name:'…')}</button>
+          <button id="stop" class="safe">Aussteigen &amp; ${rs} sichern</button>
+        </div>
+        <div class="risk"><span>Verbrennungsrisiko beim nächsten Zug: <b class="${cls}">${risk}%</b></span>
+        <span>Nach Sichern: <b>${me.total+rs}</b> / ${TARGET}</span></div>
+        <details style="margin-top:8px"><summary>Noch im Stapel${S.reshuffleNext?' (nach Neumischen)':''}</summary>
+          <div class="deckinfo">${Array.from({length:13},(_,k)=>k+1).map(v=>`<span class="${me.cards.includes(v)?'warn':''}">${v}: <b>${rem[v]||0}</b></span>`).join('')}</div>
+        </details>`;
+    } else {
+      inner = `<div class="muted" style="text-align:center">${me.status==='burned'?'🔥 Du bist verbrannt.':'✓ Du hast '+me.banked+' Punkte gesichert.'} ${cur?esc(cur.name)+' ist am Zug.':''}</div>`;
+    }
+    h += `<div class="actions"><div class="inner">${inner}</div></div>`;
+  }
+
+  h += `<div class="box" style="margin-top:14px"><h3 style="margin-top:0">Verlauf</h3><ul class="log">${S.log.map(l=>`<li>${esc(l)}</li>`).join('')}</ul></div>`;
+
+  if(S.phase === 'roundend'){
+    const ranked = [...S.players].sort((a,b)=>b.total-a.total);
+    h += `<div class="overlay"><div class="modal">
+      <h2>Runde ${S.round} vorbei</h2>
+      <ul class="plist">${ranked.map(p=>`<li><span>${esc(p.name)}${p.id===myId?'<span class="you">DU</span>':''}</span>
+        <span>${p.status==='burned'?'<span style="color:var(--bad)">🔥 0</span>':'<span style="color:var(--good)">+'+(p.banked||0)+'</span>'} → <b>${p.total}</b></span></li>`).join('')}</ul>
+      <button id="next" class="primary" style="width:100%;margin-top:16px">Nächste Runde</button>
+    </div></div>`;
+  }
+  if(S.phase === 'gameover'){
+    const w = S.players.find(p=>p.id===S.winner);
+    const ranked = [...S.players].sort((a,b)=>b.total-a.total);
+    h += `<div class="overlay"><div class="modal" style="text-align:center">
+      <div style="font-size:60px">🏆</div>
+      <h2>${w && w.id===myId ? 'Du hast gewonnen!' : esc(w?w.name:'?') + ' gewinnt!'}</h2>
+      <ul class="plist" style="text-align:left">${ranked.map(p=>`<li><span>${esc(p.name)}</span><b>${p.total}</b></li>`).join('')}</ul>
+      ${isHost?'<button id="restart" class="primary" style="width:100%;margin-top:16px">Neues Spiel</button>':'<p class="muted small">Der Gastgeber kann ein neues Spiel starten.</p>'}
+    </div></div>`;
+  }
+  return h;
+}
+
+function bind(){
+  const on = (id, fn) => { const el = document.getElementById(id); if(el) el.onclick = fn; };
+  const nameEl = document.getElementById('name');
+  if(nameEl) nameEl.oninput = () => { myName = nameEl.value.trim(); store('verbrannt-name', myName); };
+  const needName = () => { if(!myName){ errorMsg = 'Bitte gib zuerst deinen Namen ein.'; render(); document.getElementById('name').focus(); return false; } return true; };
+  on('host', () => { if(needName()) hostGame(); });
+  on('join', () => { if(needName()) joinGame(document.getElementById('code').value); });
+  const codeEl = document.getElementById('code');
+  if(codeEl) codeEl.onkeydown = e => { if(e.key==='Enter') document.getElementById('join').click(); };
+  on('copy', () => {
+    const el = document.getElementById('link'); el.select();
+    (navigator.clipboard ? navigator.clipboard.writeText(el.value) : Promise.reject()).catch(()=>document.execCommand('copy'));
+    document.getElementById('copy').textContent = 'Kopiert ✓';
+  });
+  on('start', () => send('start'));
+  on('restart', () => send('restart'));
+  on('next', () => send('next'));
+  on('draw', () => send('draw'));
+  on('stop', () => send('stop'));
+}
+
+window.addEventListener('keydown', e => {
+  if(!S || S.phase!=='playing' || document.activeElement.tagName==='INPUT') return;
+  if(e.key===' ' || e.key==='Enter'){ e.preventDefault(); const b=document.getElementById('draw'); if(b && !b.disabled) b.click(); }
+});
+window.addEventListener('beforeunload', e => { if(isHost && S && S.players.length>1){ e.preventDefault(); e.returnValue=''; } });
+
+render();
+</script>
+</body>
+</html>
