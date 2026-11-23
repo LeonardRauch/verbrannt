@@ -92,7 +92,8 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px}
 <body>
 <div id="app"></div>
 <script>
-const TARGET = 100;
+const TARGET = 200;
+const SEVEN = 7, BONUS = 15;
 const PREFIX = 'verbrannt-kartenspiel-v1-';
 const app = document.getElementById('app');
 
@@ -108,7 +109,7 @@ let myName = store('verbrannt-name') || '';
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
-const fullDeck = () => { const d=[]; for(let v=1; v<=13; v++) for(let i=0;i<v;i++) d.push(v); return shuffle(d); };
+const fullDeck = () => { const d=[0]; for(let v=1; v<=13; v++) for(let i=0;i<v;i++) d.push(v); return shuffle(d); };
 const sum = a => a.reduce((x,y)=>x+y,0);
 const color = v => `hsl(${(v*29+10)%360} 75% 45%)`;
 function makeCode(){ const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s=''; for(let i=0;i<5;i++) s+=c[Math.floor(Math.random()*c.length)]; return s; }
@@ -198,7 +199,7 @@ function newGame(){
 }
 
 function startRound(){
-  S.players.forEach(p => { discard.push(...p.cards); p.cards = []; p.banked = null; p.status = p.connected ? 'active' : 'away'; });
+  S.players.forEach(p => { discard.push(...p.cards); p.cards = []; p.banked = null; p.bonus = false; p.status = p.connected ? 'active' : 'away'; });
   const n = S.players.length;
   let s = S.starter;
   for(let k=0;k<n;k++){ s = (s+1) % n; if(S.players[s].status === 'active') break; }
@@ -224,8 +225,29 @@ function draw(idx){
     addLog(`🔥 ${p.name} zieht eine zweite ${v} und ist VERBRANNT! (${sum(p.cards) - v} Punkte weg)`);
   } else {
     addLog(`${p.name} zieht eine ${v} (Runde: ${sum(p.cards)}).`);
+    if(p.cards.length >= SEVEN){ sevenCards(idx); return; }
   }
   advanceTurn();
+}
+
+function sevenCards(idx){
+  const p = S.players[idx];
+  S.last.seven = true;
+  addLog(`⭐ ${p.name} hat ${SEVEN} Karten offen! Die Runde endet für alle – +${BONUS} Mutbonus.`);
+  S.players.forEach((q, j) => {
+    if(q.status !== 'active') return;
+    const pts = sum(q.cards) + (j === idx ? BONUS : 0);
+    q.status = 'stopped'; q.banked = pts; q.total += pts; q.bonus = (j === idx);
+    if(j !== idx) addLog(`${q.name} sichert ${pts} Punkte (gesamt ${q.total}).`);
+  });
+  addLog(`${p.name} sichert ${p.banked} Punkte inkl. Bonus (gesamt ${p.total}).`);
+  const best = [...S.players].sort((a,b) => b.total - a.total)[0];
+  if(best.total >= TARGET){
+    S.phase = 'gameover'; S.winner = best.id;
+    addLog(`🏆 ${best.name} gewinnt mit ${best.total} Punkten!`);
+    return;
+  }
+  endRound();
 }
 
 function stop(idx){
@@ -263,7 +285,7 @@ function endRound(){
 function broadcast(){
   if(!isHost) return;
   const src = deck.length ? deck : discard;
-  const rem = {}; for(let v=1;v<=13;v++) rem[v]=0; src.forEach(v => rem[v]++);
+  const rem = {}; for(let v=0;v<=13;v++) rem[v]=0; src.forEach(v => rem[v]++);
   S.deckCount = deck.length; S.remaining = rem; S.reshuffleNext = !deck.length;
   for(const pid in conns){ try{ conns[pid].send({t:'state', s:S, you:pid}); }catch(e){} }
   onState();
@@ -301,7 +323,8 @@ function onState(){
   if(S && S.last && S.last.seq > lastSeenSeq){
     lastSeenSeq = S.last.seq;
     const me = S.last.pid === myId;
-    if(S.last.burned) showToast(me ? `🔥 Verbrannt! Zweite ${S.last.v}.` : `🔥 ${S.last.name} ist verbrannt!`, false);
+    if(S.last.seven) showToast(me ? `⭐ ${SEVEN} Karten! +${BONUS} Mutbonus` : `⭐ ${S.last.name} hat ${SEVEN} Karten – Runde vorbei!`, true);
+    else if(S.last.burned) showToast(me ? `🔥 Verbrannt! Zweite ${S.last.v}.` : `🔥 ${S.last.name} ist verbrannt!`, false);
     else if(S.last.stop) showToast(me ? `✅ ${S.last.pts} Punkte gesichert` : `✅ ${S.last.name} sichert ${S.last.pts}`, true);
   }
   render();
@@ -352,11 +375,12 @@ function homeView(){
   </div>
   <details class="box"><summary>Regeln</summary>
     <ul class="small">
-      <li>Der Stapel hat 91 Karten: jede Zahl 1–13 kommt so oft vor wie ihr Wert (1× die 1, 13× die 13).</li>
+      <li>Der Stapel hat 92 Karten: jede Zahl 1–13 kommt so oft vor wie ihr Wert (1× die 1, 13× die 13), dazu eine einzelne 0.</li>
       <li>Reihum zieht jeder Spieler eine Karte. Alle Karten liegen offen.</li>
       <li>Ziehst du eine Zahl, die schon vor dir liegt, bist du <b>verbrannt</b>: alle Punkte dieser Runde sind weg.</li>
       <li>Du kannst jederzeit aussteigen und die Summe deiner Karten sichern.</li>
       <li>Die anderen spielen weiter, bis alle ausgestiegen oder verbrannt sind.</li>
+      <li>Hat jemand ${SEVEN} Karten offen liegen, endet die Runde sofort für alle: Alle, die noch im Spiel sind, sichern ihre Punkte, und wer die ${SEVEN} Karten hat, bekommt ${BONUS} Bonuspunkte für seinen Mut.</li>
       <li>Wer zuerst ${TARGET} Punkte gesichert hat, gewinnt sofort.</li>
     </ul>
   </details>`;
@@ -403,7 +427,7 @@ function gameView(){
     const lastIsMine = S.last && S.last.pid===p.id && !S.last.stop;
     let badge = '';
     if(p.status==='burned') badge = '<span class="badge burned">🔥 Verbrannt</span>';
-    else if(p.status==='stopped') badge = `<span class="badge stopped">✓ +${p.banked} gesichert</span>`;
+    else if(p.status==='stopped') badge = `<span class="badge stopped">${p.bonus?'⭐':'✓'} +${p.banked} gesichert${p.bonus?' (inkl. '+BONUS+' Mut)':''}</span>`;
     else if(p.status==='away') badge = '<span class="badge away">offline</span>';
     else if(isTurn) badge = '<span class="badge turn">am Zug</span>';
     else badge = '<span class="badge">spielt</span>';
@@ -442,7 +466,7 @@ function gameView(){
         <div class="risk"><span>Verbrennungsrisiko beim nächsten Zug: <b class="${cls}">${risk}%</b></span>
         <span>Nach Sichern: <b>${me.total+rs}</b> / ${TARGET}</span></div>
         <details style="margin-top:8px"><summary>Noch im Stapel${S.reshuffleNext?' (nach Neumischen)':''}</summary>
-          <div class="deckinfo">${Array.from({length:13},(_,k)=>k+1).map(v=>`<span class="${me.cards.includes(v)?'warn':''}">${v}: <b>${rem[v]||0}</b></span>`).join('')}</div>
+          <div class="deckinfo">${Array.from({length:14},(_,k)=>k).map(v=>`<span class="${me.cards.includes(v)?'warn':''}">${v}: <b>${rem[v]||0}</b></span>`).join('')}</div>
         </details>`;
     } else {
       inner = `<div class="muted" style="text-align:center">${me.status==='burned'?'🔥 Du bist verbrannt.':'✓ Du hast '+me.banked+' Punkte gesichert.'} ${cur?esc(cur.name)+' ist am Zug.':''}</div>`;
@@ -457,7 +481,7 @@ function gameView(){
     h += `<div class="overlay"><div class="modal">
       <h2>Runde ${S.round} vorbei</h2>
       <ul class="plist">${ranked.map(p=>`<li><span>${esc(p.name)}${p.id===myId?'<span class="you">DU</span>':''}</span>
-        <span>${p.status==='burned'?'<span style="color:var(--bad)">🔥 0</span>':'<span style="color:var(--good)">+'+(p.banked||0)+'</span>'} → <b>${p.total}</b></span></li>`).join('')}</ul>
+        <span>${p.status==='burned'?'<span style="color:var(--bad)">🔥 0</span>':'<span style="color:var(--good)">'+(p.bonus?'⭐ ':'')+'+'+(p.banked||0)+'</span>'} → <b>${p.total}</b></span></li>`).join('')}</ul>
       <button id="next" class="primary" style="width:100%;margin-top:16px">Nächste Runde</button>
     </div></div>`;
   }
