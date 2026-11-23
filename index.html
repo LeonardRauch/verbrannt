@@ -108,6 +108,8 @@ button.safe{background:linear-gradient(180deg,#7ee8a8,var(--good));color:#0b2a17
 .deckinfo span{font-size:11px;background:var(--panel2);border-radius:6px;padding:3px 6px;color:var(--muted)}
 .deckinfo span b{color:var(--text)}
 .deckinfo span.warn{outline:1px solid var(--bad)}
+.chk{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text);margin:0 0 12px;cursor:pointer}
+.chk input{width:18px;height:18px;margin:0;accent-color:var(--accent);flex:0 0 auto;cursor:pointer}
 details summary{cursor:pointer;color:var(--muted);font-size:13px}
 </style>
 </head>
@@ -129,6 +131,7 @@ let lastSeenSeq = 0, toast = null, toastTimer = null;
 
 function store(k, v){ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k, v); }catch(e){ return null; } }
 let myName = store('verbrannt-name') || '';
+let optRisk = store('verbrannt-risk') !== '0';
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
@@ -163,7 +166,7 @@ function hostGame(){
   peer.on('open', () => {
     isHost = true; myId = 'host'; connecting = false;
     S = { room, phase:'lobby', round:0, turn:0, starter:-1, seq:0, last:null, winner:null, log:[],
-          players:[newPlayer('host', myName)], deckCount:0, remaining:{}, choose:null, flip:null };
+          players:[newPlayer('host', myName)], deckCount:0, remaining:{}, choose:null, flip:null, showRisk:optRisk };
     history.replaceState(null,'','#'+room);
     broadcast();
   });
@@ -223,6 +226,7 @@ function act(pid, a, target){
   const p = S.players[idx];
   const busy = !!(S.choose || S.flip);
   if(a === 'start' && pid === 'host' && S.phase === 'lobby'){ newGame(); }
+  else if(a === 'risk' && pid === 'host' && S.phase === 'lobby'){ S.showRisk = !!target; }
   else if(a === 'restart' && pid === 'host' && S.phase === 'gameover'){ newGame(); }
   else if(a === 'next' && S.phase === 'roundend'){ startRound(); }
   else if(a === 'draw' && S.phase === 'playing' && !busy && S.turn === idx && p.status === 'active'){ draw(idx); }
@@ -516,7 +520,7 @@ function render(){
   if(toast) h += `<div class="toast ${toast.cls}">${esc(toast.msg)}</div>`;
   const focused = document.activeElement && document.activeElement.id;
   app.innerHTML = h;
-  if(focused){ const el = document.getElementById(focused); if(el && el.tagName === 'INPUT'){ el.focus(); const l = el.value.length; el.setSelectionRange(l,l); } }
+  if(focused){ const el = document.getElementById(focused); if(el && el.tagName === 'INPUT' && el.type === 'text'){ el.focus(); const l = el.value.length; el.setSelectionRange(l,l); } }
   bind();
 }
 
@@ -554,6 +558,7 @@ function homeView(){
     <div class="box">
       <h3 style="margin-top:0">Neues Spiel</h3>
       <p class="muted small" style="margin-top:0">Du bist Gastgeber und bekommst einen Link, den du an deine Mitspieler schickst. Lass diesen Tab während des Spiels offen.</p>
+      <label class="chk"><input type="checkbox" id="optRisk" ${optRisk?'checked':''}> Verbrennungswahrscheinlichkeit anzeigen</label>
       <button id="host" class="${hashCode?'':'primary'}" style="width:100%" ${connecting?'disabled':''}>${connecting?'Verbinde…':'Spiel erstellen'}</button>
     </div>
   </div>
@@ -574,6 +579,11 @@ function lobbyView(){
   <div class="box">
     <h3 style="margin-top:0">Spieler (${S.players.length}/8)</h3>
     <ul class="plist">${S.players.map(p => `<li><span>${esc(p.name)}${p.id===myId?' <span class="you">DU</span>':''}</span><span class="muted small">${p.id==='host'?'Gastgeber':'bereit'}</span></li>`).join('')}</ul>
+  </div>
+  <div class="box">
+    ${isHost
+      ? `<label class="chk" style="margin:0"><input type="checkbox" id="lobbyRisk" ${S.showRisk?'checked':''}> Verbrennungswahrscheinlichkeit anzeigen</label>`
+      : `<span class="muted small">Verbrennungswahrscheinlichkeit: <b style="color:var(--text)">${S.showRisk?'wird angezeigt':'ausgeblendet'}</b></span>`}
   </div>
   ${isHost
     ? `<button id="start" class="primary" style="width:100%;padding:16px">Spiel starten</button>
@@ -651,12 +661,12 @@ function gameView(){
           <button id="draw" class="primary" ${myTurn?'':'disabled'}>${myTurn?'Karte ziehen':waitTxt}</button>
           <button id="stop" class="safe" ${busy?'disabled':''}>Aussteigen &amp; ${rs} sichern</button>
         </div>
-        <div class="risk"><span>Verbrennungsrisiko beim nächsten Zug: <b class="${cls}">${risk}%</b>${me.sc>0?' – aber dein ❤ rettet dich':''}</span>
+        <div class="risk">${S.showRisk ? `<span>Verbrennungsrisiko beim nächsten Zug: <b class="${cls}">${risk}%</b>${me.sc>0?' – aber dein ❤ rettet dich':''}</span>` : '<span></span>'}
         <span>Nach Sichern: <b>${me.total+rs}</b> / ${TARGET}</span></div>
-        <details style="margin-top:8px"><summary>Noch im Stapel${S.reshuffleNext?' (nach Neumischen)':''}</summary>
+        ${!S.showRisk ? '' : `<details style="margin-top:8px"><summary>Noch im Stapel${S.reshuffleNext?' (nach Neumischen)':''}</summary>
           <div class="deckinfo">${Array.from({length:14},(_,k)=>k).map(v=>`<span class="${me.cards.includes(v)?'warn':''}">${v}: <b>${rem[v]||0}</b></span>`).join('')}
           ${['F','T','S'].map(a=>`<span>${ACT[a].ico} ${ACT[a].name}: <b>${rem[a]||0}</b></span>`).join('')}</div>
-        </details>`;
+        </details>`}`;
     } else {
       const st = me.status==='burned' ? '🔥 Du bist verbrannt.' : me.status==='frozen' ? `❄ Du bist eingefroren und hast ${me.banked} Punkte gesichert.` : `✓ Du hast ${me.banked} Punkte gesichert.`;
       inner = `<div class="muted" style="text-align:center">${st} ${cur&&cur.status==='active'?esc(cur.name)+' ist am Zug.':''}</div>`;
@@ -715,6 +725,10 @@ function bind(){
     (navigator.clipboard ? navigator.clipboard.writeText(el.value) : Promise.reject()).catch(()=>document.execCommand('copy'));
     document.getElementById('copy').textContent = 'Kopiert ✓';
   });
+  const optEl = document.getElementById('optRisk');
+  if(optEl) optEl.onchange = () => { optRisk = optEl.checked; store('verbrannt-risk', optRisk ? '1' : '0'); };
+  const lobbyRiskEl = document.getElementById('lobbyRisk');
+  if(lobbyRiskEl) lobbyRiskEl.onchange = () => { optRisk = lobbyRiskEl.checked; store('verbrannt-risk', optRisk ? '1' : '0'); send('risk', optRisk ? 1 : 0); };
   on('start', () => send('start'));
   on('restart', () => send('restart'));
   on('next', () => send('next'));
